@@ -1,0 +1,205 @@
+
+
+;; Enable Logging for deleted objects
+
+[#Part: CMP AccFeat Right]
+	Add:Line:At End:DeletedObjectConfig
+	
+[Line:DeletedObjectConfig]
+	Space Top:0.2
+	Fields:MediumPrompt,LogicalField
+	Local:Field:MediumPrompt:Info:$$LocaleString:"Keep Tracking Deleted Vouchers and Masters?"
+	Local:Field:LogicalField:Set as:No
+	Local:Field:Logical Field:Storage:DelObjCanAct
+
+
+[System:Formulae]
+	CanMaintainDeletionLog:$DelObjCanAct:Company:##SvCurrentCompany
+
+
+;; Subscribe to Object Delete Event To Perform Logging
+
+[System:Events]
+	
+	AfterObjectDeleted:After Delete Object:Yes and @@CanMaintainDeletionLog:Call:PerformDeleteLogOperation
+	
+;;Logging Function
+	
+[Function:PerformDeleteLogOperation]
+ Variable:DelObjType:String
+ Variable:DelObjMid:String
+ Variable:DelObjGuid:String
+ Variable:DelObjVno:String
+ Variable:DelObjDate:String
+ Variable:DelObjVType:String
+ Variable:DelObjName:String
+ Variable:DelObjPerformDate:String
+ Variable:DelObjTime:String
+ Variable:DelObjUser:String
+ 
+ 01:Set:DelObjType:$$String:($$Type:.)
+ 02:Set:DelObjMid:$$String:($MasterId)
+ 03:Set:DelObjGuid:$Guid
+ 04:Set:DelObjPerformDate:$$String:($$MachineDate)
+ 05:Set:DelObjTime:$$String:$$MachineTime
+ 06:Set:DelObjUser:$$String:$$CmpUserName
+ 07:Set:DelObjVno:$$String:(if ##DelObjType = "Voucher" then $VoucherNumber else "")
+ 08:Set:DelObjDate:$$String:(if ##DelObjType = "Voucher" then ($$String:$Date) else "")
+ 09:Set:DelObjVType:$$String:(if ##DelObjType = "Voucher" then $VoucherTypeName else "")
+ 10:Set:DelObjName:$$String:(if ##DelObjType = "Voucher" then "" else $Name)
+ 11:Call:DeletedObjStartLogg
+ 12:Return
+ 
+[Function:DeletedObjStartLogg]
+ Object:Company:##SvCurrentCompany
+ 
+ 02:Set Object:.
+ 03:Set Target
+ 04:Insert Collection Object:DeletedObjLogger
+ 05:Set Value:DeletedObjType:##DelObjType
+ 06:Set Value:DeletedObjMid:##DelObjMid
+ 07:Set Value:DeletedObjGuid:##DelObjGuid
+ 08:Set Value:DeletedObjPDate:##DelObjPerformDate
+ 09:Set Value:DeletedObjTime:##DelObjTime
+ 10:Set Value:DeletedObjUser:##DelObjUser
+ 11:Set Value:DeletedObjVno:##DelObjVno 
+ 12:Set Value:DeletedObjVdate:##DelObjDate
+ 13:Set Value:DeletedObjVtype:##DelObjVType
+ 14:Set Value:DeletedObjName:##DelObjName
+ 15:Set Target:..
+ 16:Save Target
+ 17:Log:"Log Record Created.."
+ 18:Return
+	
+
+;;; report for deleted objects
+
+[#Menu:GateWayOfTally]
+	Add:Key Item:Deleted Items Record:m:Display:DeletedObjectsRecordRpt
+
+[Report:DeletedObjectsRecordRpt]
+	Form:DeletedObjectsRecordRpt
+	Title:$$LocaleString:"List Of Deleted Vouchers and Masters"
+	
+	
+[Form:DeletedObjectsRecordRpt]
+	Part:DeletedObjectsRecordRpt
+	Buttons:PrintButton,ExportButton
+	
+[Part:DeletedObjectsRecordRpt]
+	Lines:DeletedObjTitles,DeletedObjValues
+	Repeat:DeletedObjValues:DeletedObjectsLogColl
+	Common Border:Yes
+	Scrolled:Both
+	Width:100% page
+	Background:white
+	
+[Line:DeletedObjTitles]
+	
+	Border:ThickTopBottom
+	Fields:DeletedObjPDate,DeletedObjTime,DeletedObjUser,DeletedObjType,DeletedObjMid,DeletedObjVno,DeletedObjVdate,DeletedObjVType,DeletedObjName,DeletedObjGuid
+    Local:Field:DeletedObjPDate:Set as:"Deleted On"	
+	Local:Field:DeletedObjTime:Set as:"Deleted At"
+	Local:Field:DeletedObjUser:Set as:"Deleted By"
+	Local:Field:DeletedObjType:Set as:"Type"
+	Local:Field:DeletedObjMid:Set as:"Master Id"
+	Local:Field:DeletedObjGuid:Set as:"Guid"
+	Local:Field:DeletedObjVno:Set as:"Voucher Number"
+	Local:Field:DeletedObjVdate:Set as:"Voucher Date"
+	Local:Field:DeletedObjVtype:Set as:"Voucher Type"
+	Local:Field:DeletedObjName:Set as:"Master Name"
+	Local:Field:default:Align:Center
+	Local:Field:Default:Style:Normal Bold
+	Local:Field:Default:Border:ThinLeft
+	
+[Line:DeletedObjValues]
+	Fields:DeletedObjPDate,DeletedObjTime,DeletedObjUser,DeletedObjType,DeletedObjMid,DeletedObjVno,DeletedObjVdate,DeletedObjVType,DeletedObjName,DeletedObjGuid
+	
+[Field:DeletedObjPDate]
+	Set as:$DeletedObjPDate
+    Align:Center
+	Width:15
+	Border:ThinLeft
+  
+[Field:DeletedObjTime]
+	Set as:$DeletedObjTime
+    Align:Center
+	Width:15
+	Border:ThinLeft
+	
+	
+[Field:DeletedObjUser]
+	Set as:$DeletedObjUser
+    Align:Center
+	Width:15
+	Border:ThinLeft
+
+[Field:DeletedObjType]
+	Set as:$DeletedObjType
+	Align:Center
+	Width:20
+	Border:ThinLeft
+	
+[Field:DeletedObjMid]
+	Set as:$$String:$DeletedObjMid
+	Align:Center
+	Width:15
+	Border:ThinLeft
+	
+[Field:DeletedObjGuid]
+	Set as:$DeletedObjGuid
+	Align:Center
+	Width:25
+	Border:ThinLeft
+	
+[Field:DeletedObjVno]
+	Set as:$DeletedObjVno
+	Align:Center
+	Width:15
+	Border:ThinLeft
+	
+[Field:DeletedObjVdate]
+	Set as:$DeletedObjVdate
+	Align:Center
+	Width:15
+	Border:ThinLeft
+	
+[Field:DeletedObjVType]
+	Set as:$DeletedObjVType
+	Align:Center
+	Width:15
+	Border:ThinLeft
+	
+[Field:DeletedObjName]
+	Set as:$DeletedObjName
+	Align:Center
+	Width:20
+	Border:ThinLeft
+	
+
+;;Deleted Objects Info Storage
+
+
+[System:UDF]
+	
+	DeletedObjLogger:Aggregate:5000
+	DeletedObjPDate:String:5011
+	DeletedObjTime:String:5009
+	DeletedObjUser:String:5010
+	DeletedObjType:String:5001
+	DeletedObjMid:String:5002
+	DeletedObjGuid:String:5003
+	DeletedObjVno:String:5004
+	DeletedObjVdate:String:5006
+	DeletedObjVtype:String:5007
+	DeletedObjName:String:5008
+	DelObjCanAct:Logical:6156
+
+
+;; Deleted Objects Collection
+
+[Collection:DeletedObjectsLogColl]
+	Type:DeletedObjLogger:Company
+	Child Of:##SvCurrentCompany
+	Fetch:DeletedObjType,DeletedObjMid,DeletedObjGuid,DeletedObjVno,DeletedObjVdate,DeletedObjVtype,DeletedObjName,DeletedObjTime,DeletedObjUser,DeletedObjPDate
+	
