@@ -2,7 +2,7 @@
 Track Deleted Vouchers and Master In TallyErp9
 
 Getting Started:
-->Download "Deleted Masters Trans Report.tcp" along with Sample data (If you needed)
+->Download "Deleted Masters Trans Report.txt" along with Sample data (If you needed)
 ->Load the tcp in TalyErp9
 
 Documentation:
@@ -14,7 +14,5 @@ Documentation:
 ->You will Find Details About Deleted Masters and Vouchers Like master id, guid,date,time,user,name, etc...
 
 
-Restrictions:
-->Only Works in Educational Mode
-->Guraded by Licensing Policies
+ 
 
